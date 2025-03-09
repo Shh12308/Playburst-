@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Tic-Tac-Toe</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f7f7f7;
+        }
+
+        .game-container {
+            text-align: center;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: #333;
+        }
+
+        .selector {
+            margin-bottom: 15px;
+        }
+
+        select {
+            padding: 5px;
+            font-size: 1rem;
+        }
+
+        .board {
+            display: grid;
+            gap: 5px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 400px;
+            margin: auto;
+        }
+
+        .cell {
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: 2px solid #ddd;
+            transition: background-color 0.3s;
+            width: 80px;
+            height: 80px;
+        }
+
+        .cell:hover {
+            background-color: #e0e0e0;
+        }
+
+        .disabled {
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #333;
+        }
+
+        .reset-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .reset-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <h1>Math Tic-Tac-Toe</h1>
+
+    <!-- Mode Selector -->
+    <div class="selector">
+        <label for="game-mode">Game Mode:</label>
+        <select id="game-mode" onchange="setGameMode()">
+            <option value="player">Player vs Player</option>
+            <option value="normal-bot">Player vs Normal Bot</option>
+            <option value="difficult-bot">Player vs Difficult Bot</option>
+            <option value="math">Math Tic-Tac-Toe</option>
+        </select>
+    </div>
+
+    <!-- Board -->
+    <div id="board" class="board"></div>
+
+    <!-- Status -->
+    <div class="status" id="game-status">Player 1's Turn</div>
+    <button class="reset-btn" onclick="resetGame()">Reset Game</button>
+</div>
+
+<script>
+// Game state variables
+let board = [];
+let currentPlayer = 'X';
+let gameActive = true;
+let gameMode = 'player';
+let isBotTurn = false;
+
+// Set game mode
+function setGameMode() {
+    gameMode = document.getElementById('game-mode').value;
+    resetGame();
+}
+
+// Create board
+function createBoard() {
+    const boardElement = document.getElementById('board');
+    boardElement.innerHTML = '';
+    board = Array(3).fill().map(() => Array(3).fill(''));
+
+    boardElement.style.gridTemplateColumns = `repeat(3, 1fr)`;
+    boardElement.style.gridTemplateRows = `repeat(3, 1fr)`;
+
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.id = `cell-${i}-${j}`;
+            cell.onclick = () => playerMove(i, j);
+            boardElement.appendChild(cell);
+        }
+    }
+}
+
+// Generate a math question
+function generateMathQuestion() {
+    let num1 = Math.floor(Math.random() * 10) + 1;
+    let num2 = Math.floor(Math.random() * 10) + 1;
+    let operations = ['+', '-', '*', '/'];
+    let operation = operations[Math.floor(Math.random() * operations.length)];
+
+    let question = `${num1} ${operation} ${num2}`;
+    let correctAnswer = eval(question).toFixed(2); // Round for division
+    return { question, correctAnswer };
+}
+
+// Handle player moves
+function playerMove(row, col) {
+    if (gameActive && board[row][col] === '' && !isBotTurn) {
+        if (gameMode === 'math') {
+            let { question, correctAnswer } = generateMathQuestion();
+            let userAnswer = prompt(`Solve: ${question}`);
+            
+            if (userAnswer === null || userAnswer.trim() === '') return;
+            if (parseFloat(userAnswer) !== parseFloat(correctAnswer)) {
+                alert("Wrong answer! You lose your turn.");
+                return;
+            }
+        }
+
+        board[row][col] = currentPlayer;
+        updateBoard();
+
+        if (checkWinner(currentPlayer)) {
+            document.getElementById('game-status').innerText = `${currentPlayer} Wins!`;
+            gameActive = false;
+        } else if (board.flat().includes('')) {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            document.getElementById('game-status').innerText = `Player ${currentPlayer}'s Turn`;
+
+            if (gameMode !== 'player' && currentPlayer === 'O') {
+                isBotTurn = true;
+                setTimeout(botMove, 500);
+            }
+        } else {
+            document.getElementById('game-status').innerText = "It's a Draw!";
+            gameActive = false;
+        }
+    }
+}
+
+// Update UI
+function updateBoard() {
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            const cell = document.getElementById(`cell-${i}-${j}`);
+            cell.textContent = board[i][j];
+            if (board[i][j] !== '') cell.classList.add('disabled');
+        }
+    }
+}
+
+// Check winner
+function checkWinner(player) {
+    for (let i = 0; i < 3; i++) {
+        if (board[i].every(cell => cell === player) || board.map(row => row[i]).every(cell => cell === player)) {
+            return true;
+        }
+    }
+    if (board.every((row, i) => row[i] === player) || board.every((row, i) => row[2 - i] === player)) {
+        return true;
+    }
+    return false;
+}
+
+// Bot move
+function botMove() {
+    let emptyCells = [];
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            if (board[i][j] === '') emptyCells.push([i, j]);
+        }
+    }
+
+    const [row, col] = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    board[row][col] = 'O';
+    updateBoard();
+
+    isBotTurn = false;
+    if (checkWinner('O')) {
+        document.getElementById('game-status').innerText = "Bot Wins!";
+        gameActive = false;
+    } else {
+        currentPlayer = 'X';
+        document.getElementById('game-status').innerText = "Player X's Turn";
+    }
+}
+
+// Reset game
+function resetGame() {
+    createBoard();
+    gameActive = true;
+    currentPlayer = 'X';
+    isBotTurn = false;
+    document.getElementById('game-status').innerText = "Player X's Turn";
+}
+
+// Initialize board on load
+createBoard();
+</script>
+
+</body>
+</html>

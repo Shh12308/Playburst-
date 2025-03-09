@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simon Says Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #333;
+            color: white;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(2, 200px);
+            grid-template-rows: repeat(2, 200px);
+            gap: 10px;
+            justify-content: center;
+            margin-top: 50px;
+        }
+
+        .color-btn {
+            width: 200px;
+            height: 200px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .red {
+            background-color: red;
+        }
+
+        .green {
+            background-color: green;
+        }
+
+        .blue {
+            background-color: blue;
+        }
+
+        .yellow {
+            background-color: yellow;
+        }
+
+        .active {
+            transform: scale(1.1);
+        }
+
+        #status {
+            font-size: 24px;
+            margin-top: 20px;
+        }
+
+        #start-btn {
+            background-color: #00cc00;
+            padding: 10px 20px;
+            font-size: 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #start-btn:hover {
+            background-color: #009900;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Simon Says Game</h1>
+    <button id="start-btn">Start Game</button>
+    <div id="status"></div>
+    <div class="game-board">
+        <button class="color-btn red"></button>
+        <button class="color-btn green"></button>
+        <button class="color-btn blue"></button>
+        <button class="color-btn yellow"></button>
+    </div>
+
+    <script>
+        const colors = ['red', 'green', 'blue', 'yellow'];
+        let sequence = [];
+        let userSequence = [];
+        let gameStarted = false;
+
+        const startBtn = document.getElementById('start-btn');
+        const status = document.getElementById('status');
+        const colorButtons = document.querySelectorAll('.color-btn');
+
+        // Start the game
+        startBtn.addEventListener('click', () => {
+            if (!gameStarted) {
+                gameStarted = true;
+                startBtn.style.display = 'none';
+                status.textContent = 'Simon Says: Watch the sequence!';
+                nextRound();
+            }
+        });
+
+        // Handle button clicks by the user
+        colorButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                if (!gameStarted || status.textContent.includes('Watch')) return;
+                
+                const color = e.target.classList[1];
+                userSequence.push(color);
+                e.target.classList.add('active');
+                setTimeout(() => e.target.classList.remove('active'), 200);
+                checkSequence();
+            });
+        });
+
+        // Generate the next sequence
+        function nextRound() {
+            userSequence = [];
+            sequence.push(colors[Math.floor(Math.random() * 4)]);
+            playSequence();
+        }
+
+        // Play the sequence (show colors)
+        function playSequence() {
+            let index = 0;
+            const interval = setInterval(() => {
+                const color = sequence[index];
+                highlightColor(color);
+                index++;
+
+                if (index >= sequence.length) {
+                    clearInterval(interval);
+                    status.textContent = 'Simon Says: Your Turn!';
+                }
+            }, 800);
+        }
+
+        // Highlight color when showing sequence
+        function highlightColor(color) {
+            const button = document.querySelector(`.color-btn.${color}`);
+            button.classList.add('active');
+            setTimeout(() => button.classList.remove('active'), 300);
+        }
+
+        // Check the user's sequence
+        function checkSequence() {
+            const lastColor = userSequence[userSequence.length - 1];
+            const expectedColor = sequence[userSequence.length - 1];
+
+            if (lastColor !== expectedColor) {
+                gameOver();
+            } else if (userSequence.length === sequence.length) {
+                setTimeout(() => nextRound(), 1000);
+            }
+        }
+
+        // End the game
+        function gameOver() {
+            status.textContent = 'Game Over! Click Start to play again.';
+            gameStarted = false;
+            startBtn.style.display = 'inline-block';
+            sequence = [];
+        }
+    </script>
+</body>
+</html>

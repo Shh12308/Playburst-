@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hangman Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-top: 50px;
+        }
+
+        .word {
+            font-size: 30px;
+            letter-spacing: 10px;
+            margin-top: 20px;
+        }
+
+        .letters {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .letter-btn {
+            margin: 5px;
+            padding: 10px;
+            font-size: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .letter-btn:hover {
+            background-color: #45a049;
+        }
+
+        .game-over, .win-message {
+            font-size: 24px;
+            margin-top: 30px;
+        }
+
+        .attempts {
+            font-size: 24px;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Hangman Game</h1>
+    <div class="word" id="word-display"></div>
+    <div class="attempts" id="attempts-left"></div>
+    <div class="letters" id="letters"></div>
+    <div class="game-over" id="game-over"></div>
+    <div class="win-message" id="win-message"></div>
+
+    <script>
+        // Expanded word list
+        const words = ['javascript', 'hangman', 'programming', 'coding', 'developer', 'algorithm', 'database', 'network', 'frontend', 'backend', 'internet', 'framework', 'opensource', 'machinelearning', 'artificialintelligence', 'python', 'typescript', 'react', 'angular', 'vuejs'];
+        let wordToGuess = '';
+        let guessedLetters = [];
+        let attempts = 6;
+
+        function startGame() {
+            wordToGuess = words[Math.floor(Math.random() * words.length)];
+            guessedLetters = [];
+            attempts = 6;
+            document.getElementById('game-over').innerText = '';
+            document.getElementById('win-message').innerText = '';
+            document.getElementById('attempts-left').innerText = `Attempts Left: ${attempts}`;
+            updateWordDisplay();
+            createLetterButtons();
+        }
+
+        function createLetterButtons() {
+            const letters = 'abcdefghijklmnopqrstuvwxyz'.split('');
+            const lettersContainer = document.getElementById('letters');
+            lettersContainer.innerHTML = '';
+
+            letters.forEach(letter => {
+                const button = document.createElement('button');
+                button.classList.add('letter-btn');
+                button.textContent = letter;
+                button.onclick = () => guessLetter(letter);
+                lettersContainer.appendChild(button);
+            });
+        }
+
+        function guessLetter(letter) {
+            if (guessedLetters.includes(letter) || attempts <= 0) return;
+
+            guessedLetters.push(letter);
+
+            if (wordToGuess.includes(letter)) {
+                updateWordDisplay();
+                if (!wordToGuess.split('').some(char => !guessedLetters.includes(char))) {
+                    document.getElementById('win-message').innerText = 'You Win!';
+                }
+            } else {
+                attempts--;
+                document.getElementById('attempts-left').innerText = `Attempts Left: ${attempts}`;
+                if (attempts === 0) {
+                    document.getElementById('game-over').innerText = 'Game Over! The word was: ' + wordToGuess;
+                }
+            }
+        }
+
+        function updateWordDisplay() {
+            const wordDisplay = wordToGuess.split('').map(letter => guessedLetters.includes(letter) ? letter : '_').join(' ');
+            document.getElementById('word-display').innerText = wordDisplay;
+        }
+
+        // Start a new game
+        startGame();
+    </script>
+
+</body>
+</html>

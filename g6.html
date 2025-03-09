@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clicker Idle Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-top: 50px;
+            color: #2c3e50;
+        }
+
+        .game-container {
+            margin-top: 30px;
+            padding: 20px;
+        }
+
+        .coin-btn {
+            padding: 20px 40px;
+            font-size: 24px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .coin-btn:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+        }
+
+        .coin-btn:active {
+            transform: scale(0.98);
+        }
+
+        .info {
+            margin-top: 20px;
+            font-size: 24px;
+            color: #2c3e50;
+        }
+
+        .upgrade {
+            margin-top: 30px;
+        }
+
+        .upgrade-btn {
+            padding: 15px;
+            font-size: 20px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .upgrade-btn:hover {
+            background-color: #27ae60;
+            transform: scale(1.05);
+        }
+
+        .upgrade-btn.disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .timer {
+            font-size: 20px;
+            margin-top: 20px;
+            color: #2c3e50;
+        }
+
+        /* Responsive design */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 28px;
+            }
+
+            .coin-btn, .upgrade-btn {
+                width: 80%;
+                font-size: 18px;
+                padding: 15px;
+            }
+
+            .info, .upgrade {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Clicker Idle Game</h1>
+
+    <div class="game-container">
+        <button class="coin-btn" id="coinBtn">Click to Earn Coins!</button>
+        <div class="info">
+            <p>Coins: <span id="coinCount">0</span></p>
+            <p>Coins per click: <span id="coinsPerClick">1</span></p>
+        </div>
+
+        <div class="upgrade">
+            <h3>Buy Upgrades</h3>
+            <button id="autoClickerBtn" class="upgrade-btn">Auto Clicker - Cost: <span id="autoClickerCost">10</span> coins</button>
+            <p>Auto Clicker: <span id="autoClickerAmount">0</span></p>
+
+            <button id="doubleCoinsBtn" class="upgrade-btn">Double Coins - Cost: <span id="doubleCoinsCost">25</span> coins</button>
+            <p>Coins per Click: <span id="doubleCoinsAmount">1</span></p>
+        </div>
+
+        <div class="timer" id="timer"></div>
+    </div>
+
+    <!-- Sounds -->
+    <audio id="clickSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+    <audio id="upgradeSound" src="https://www.soundjay.com/button/button-3.wav"></audio>
+
+    <script>
+        let coins = 0;
+        let coinsPerClick = 1;
+        let autoClickerAmount = 0;
+        let doubleCoinsAmount = 1;
+        let autoClickerCost = 10;
+        let doubleCoinsCost = 25;
+        let autoClickerRate = 1000; // 1 second (1000 ms)
+
+        // Elements
+        const coinBtn = document.getElementById('coinBtn');
+        const coinCount = document.getElementById('coinCount');
+        const coinsPerClickElem = document.getElementById('coinsPerClick');
+        const autoClickerBtn = document.getElementById('autoClickerBtn');
+        const autoClickerCostElem = document.getElementById('autoClickerCost');
+        const autoClickerAmountElem = document.getElementById('autoClickerAmount');
+        const doubleCoinsBtn = document.getElementById('doubleCoinsBtn');
+        const doubleCoinsCostElem = document.getElementById('doubleCoinsCost');
+        const doubleCoinsAmountElem = document.getElementById('doubleCoinsAmount');
+        const timerElem = document.getElementById('timer');
+
+        const clickSound = document.getElementById('clickSound');
+        const upgradeSound = document.getElementById('upgradeSound');
+
+        // Function to update the displayed coin count
+        function updateCoinDisplay() {
+            coinCount.textContent = coins;
+            coinsPerClickElem.textContent = coinsPerClick;
+        }
+
+        // Function to start auto-clicking
+        function startAutoClicker() {
+            setInterval(() => {
+                if (autoClickerAmount > 0) {
+                    coins += autoClickerAmount;
+                    updateCoinDisplay();
+                }
+            }, autoClickerRate);
+        }
+
+        // Function to handle coin clicks
+        coinBtn.addEventListener('click', () => {
+            coins += coinsPerClick * doubleCoinsAmount; // Double coins if the upgrade is purchased
+            clickSound.play();
+            updateCoinDisplay();
+        });
+
+        // Function to handle upgrading to buy auto-clicker
+        autoClickerBtn.addEventListener('click', () => {
+            if (coins >= autoClickerCost) {
+                coins -= autoClickerCost;
+                autoClickerAmount++;
+                autoClickerCost = Math.floor(autoClickerCost * 1.5); // increase cost for next upgrade
+                autoClickerAmountElem.textContent = autoClickerAmount;
+                autoClickerCostElem.textContent = autoClickerCost;
+                updateCoinDisplay();
+                upgradeSound.play();
+            }
+        });
+
+        // Function to handle upgrading to double coins
+        doubleCoinsBtn.addEventListener('click', () => {
+            if (coins >= doubleCoinsCost) {
+                coins -= doubleCoinsCost;
+                doubleCoinsAmount *= 2; // Double coins per click
+                doubleCoinsCost = Math.floor(doubleCoinsCost * 1.5); // increase cost for next upgrade
+                doubleCoinsAmountElem.textContent = doubleCoinsAmount;
+                doubleCoinsCostElem.textContent = doubleCoinsCost;
+                updateCoinDisplay();
+                upgradeSound.play();
+            }
+        });
+
+        // Start the auto-clicker
+        startAutoClicker();
+
+        // Optional: Add timer for the game
+        let startTime = Date.now();
+        setInterval(() => {
+            let elapsed = Math.floor((Date.now() - startTime) / 1000);
+            timerElem.textContent = `Time Elapsed: ${elapsed}s`;
+        }, 1000);
+
+    </script>
+
+</body>
+</html>
