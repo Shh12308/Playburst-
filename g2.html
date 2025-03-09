@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect 4(the squares drop lol)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(7, 50px);
+            grid-template-rows: repeat(6, 50px);
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            width: 50px;
+            height: 50px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cell.red {
+            background-color: red;
+        }
+
+        .cell.yellow {
+            background-color: yellow;
+        }
+
+        .cell.taken {
+            pointer-events: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .control-button {
+            padding: 10px 20px;
+            background-color: #00ff00;
+            color: black;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 0 10px;
+        }
+
+        .control-button:active {
+            background-color: #009900;
+        }
+
+        .game-info {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Connect 4</h1>
+    <div class="game-board" id="game-board"></div>
+    <div class="game-info" id="game-info">Player Red's turn</div>
+    <div class="controls">
+        <button class="control-button" id="reset">Reset Game</button>
+    </div>
+
+    <script>
+        // Constants
+        const rows = 6;
+        const cols = 7;
+        const gameBoard = document.getElementById('game-board');
+        const gameInfo = document.getElementById('game-info');
+        const resetButton = document.getElementById('reset');
+
+        let board = [];
+        let currentPlayer = 'red';
+        let gameOver = false;
+
+        // Initialize the game board
+        function initializeBoard() {
+            board = [];
+            for (let row = 0; row < rows; row++) {
+                board.push([]);
+                for (let col = 0; col < cols; col++) {
+                    board[row].push(null);
+                }
+            }
+        }
+
+        // Render the game board
+        function renderBoard() {
+            gameBoard.innerHTML = '';
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    if (board[row][col]) {
+                        cell.classList.add(board[row][col]);
+                        cell.classList.add('taken');
+                    }
+                    cell.addEventListener('click', () => handleCellClick(col));
+                    gameBoard.appendChild(cell);
+                }
+            }
+        }
+
+        // Handle the click on a column
+        function handleCellClick(col) {
+            if (gameOver) return;
+
+            // Find the first empty row in the clicked column
+            for (let row = rows - 1; row >= 0; row--) {
+                if (!board[row][col]) {
+                    board[row][col] = currentPlayer;
+                    renderBoard();
+                    checkWin(row, col);
+                    currentPlayer = currentPlayer === 'red' ? 'yellow' : 'red';
+                    gameInfo.innerText = `Player ${currentPlayer === 'red' ? 'Red' : 'Yellow'}'s turn`;
+                    return;
+                }
+            }
+        }
+
+        // Check if a player wins
+        function checkWin(row, col) {
+            if (
+                checkDirection(row, col, 1, 0) || // Check horizontal
+                checkDirection(row, col, 0, 1) || // Check vertical
+                checkDirection(row, col, 1, 1) || // Check diagonal (down-right)
+                checkDirection(row, col, 1, -1)   // Check diagonal (up-right)
+            ) {
+                gameInfo.innerText = `Player ${currentPlayer === 'red' ? 'Red' : 'Yellow'} wins!`;
+                gameOver = true;
+            }
+        }
+
+        // Check a direction for a winning line
+        function checkDirection(row, col, dRow, dCol) {
+            let count = 1;
+            let r = row + dRow;
+            let c = col + dCol;
+
+            // Check one direction
+            while (r >= 0 && r < rows && c >= 0 && c < cols && board[r][c] === currentPlayer) {
+                count++;
+                r += dRow;
+                c += dCol;
+            }
+
+            r = row - dRow;
+            c = col - dCol;
+
+            // Check the opposite direction
+            while (r >= 0 && r < rows && c >= 0 && c < cols && board[r][c] === currentPlayer) {
+                count++;
+                r -= dRow;
+                c -= dCol;
+            }
+
+            return count >= 4;
+        }
+
+        // Reset the game
+        resetButton.addEventListener('click', () => {
+            gameOver = false;
+            currentPlayer = 'red';
+            gameInfo.innerText = "Player Red's turn";
+            initializeBoard();
+            renderBoard();
+        });
+
+        // Initialize the game on load
+        initializeBoard();
+        renderBoard();
+    </script>
+
+</body>
+</html>
